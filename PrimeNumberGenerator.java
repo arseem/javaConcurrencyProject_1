@@ -77,6 +77,7 @@ public class PrimeNumberGenerator {
         // Zakończenie puli wątków i oczekiwanie na zakończenie wszystkich wątków
         executor.shutdown();
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        numChecked.set(range);
         run.set(false);
     }
 
@@ -102,6 +103,7 @@ public class PrimeNumberGenerator {
         for (Thread thread : threads) {
             thread.join();
         }
+        numChecked.set(range);
         run.set(false);
     }
 
