@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class PrimeNumberGenerator {
     private int numThreads;
-    private final int range;
+    private int range;
     private BitSet primes;
     public Thread[] threads;
     private final AtomicInteger numChecked;
@@ -29,6 +29,7 @@ public class PrimeNumberGenerator {
 
     public void start(int newNumThreads, int newRange) {
         if (!run.get()) {
+            range = newRange;
             numThreads = newNumThreads;
             numChecked.set(0);
             primes = new BitSet(range + 1);
@@ -38,7 +39,7 @@ public class PrimeNumberGenerator {
 
     public void reset() {
         if (!run.get()){
-            primes.set(0, range+1);;
+            primes.set(0, range+1);
             numChecked.set(0);
         }
     }
