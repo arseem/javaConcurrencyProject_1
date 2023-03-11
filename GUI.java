@@ -1,7 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 
-public class PrimeNumberGeneratorGUI extends JFrame {
+public class GUI extends JFrame {
     private JProgressBar executorProgressBar;
     private JProgressBar manualProgressBar;
     private JLabel executorLabel;
@@ -14,18 +14,16 @@ public class PrimeNumberGeneratorGUI extends JFrame {
     private JLabel spinners;
     private PrimeNumberGenerator generatorExecutor;
     private PrimeNumberGenerator generatorManual;
-    private final int numNotPrimes;
     private long startTime;
     private long endTimeExecutor;
     private long endTimeManual;
 
-    public PrimeNumberGeneratorGUI(int numNotPrimes, PrimeNumberGenerator generatorExecutor, PrimeNumberGenerator generatorManual) {
-        super("Prime Number Generator");
-        this.numNotPrimes = numNotPrimes;
+    public GUI(PrimeNumberGenerator generatorExecutor, PrimeNumberGenerator generatorManual) {
+        super("ThreadRace");
         this.generatorExecutor = generatorExecutor;
         this.generatorManual = generatorManual;
-        int WIDTH = 400;
-        int HEIGHT = 100;
+        int WIDTH = 600;
+        int HEIGHT = 200;
 
         // Set up GUI components
         JPanel panel = new JPanel(new GridLayout(6, 1));
@@ -42,6 +40,8 @@ public class PrimeNumberGeneratorGUI extends JFrame {
             this.generatorExecutor.start((int) numThreadsSpinner.getValue(), (int) rangeSpinner.getValue());
             this.generatorManual.start((int) numThreadsSpinner.getValue(), (int) rangeSpinner.getValue());
             this.startTime = System.currentTimeMillis();
+            startButton.setEnabled(false);
+            resetButton.setEnabled(false);
         });
         resetButton = new JButton("Reset");
         resetButton.addActionListener(e -> {
@@ -49,6 +49,7 @@ public class PrimeNumberGeneratorGUI extends JFrame {
             this.generatorManual.reset();
             this.endTimeExecutor = 0;
             this.endTimeManual = 0;
+            startButton.setEnabled(true);
         });
         buttons.setLayout(new GridLayout(1, 2));
         buttons.add(startButton, BorderLayout.WEST);
@@ -56,7 +57,7 @@ public class PrimeNumberGeneratorGUI extends JFrame {
         spinners = new JLabel();
         spinners.setLayout(new GridLayout(2, 2));
         numThreadsSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getNumThreads(), 1, 100, 1));
-        rangeSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getRange(), 10, 1000000000, 1));
+        rangeSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getRange(), 10, 2100000000, 1));
         spinners.add(new JLabel("Number of threads:"));
         spinners.add(numThreadsSpinner);
         spinners.add(new JLabel("Range:"));
@@ -79,8 +80,8 @@ public class PrimeNumberGeneratorGUI extends JFrame {
     public void runGUI() {
         // Update progress bars in real time
         new Timer(10, e -> {
-            float executorProgress = (float) this.generatorExecutor.getProgress() / (float) this.numNotPrimes * 100;
-            float manualProgress = (float) this.generatorManual.getProgress() / (float) this.numNotPrimes * 100;
+            float executorProgress = (float) this.generatorExecutor.getProgress() / (float) this.generatorExecutor.getRange() * 100;
+            float manualProgress = (float) this.generatorManual.getProgress() / (float) this.generatorManual.getRange() * 100;
             executorProgressBar.setValue((int) executorProgress);
             manualProgressBar.setValue((int) manualProgress);
             if (executorProgress < 100) {
@@ -98,6 +99,9 @@ public class PrimeNumberGeneratorGUI extends JFrame {
                     this.endTimeManual = System.currentTimeMillis();
                 }
                 manualProgressBar.setString(((double)endTimeManual - (double)startTime)/1000 + "s");
+            }
+            if (manualProgress == 100 && executorProgress == 100) {
+                resetButton.setEnabled(true);
             }
         }).start();
     }

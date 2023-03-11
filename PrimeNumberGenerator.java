@@ -1,4 +1,4 @@
-import java.util.Arrays;
+import java.util.BitSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -8,16 +8,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PrimeNumberGenerator {
     private int numThreads;
     private final int range;
-    private boolean[] primes;
+    private BitSet primes;
     public Thread[] threads;
-    private final AtomicInteger numNonPrimes;
+    private final AtomicInteger numChecked;
     private AtomicBoolean run;
 
     public PrimeNumberGenerator(int numThreads, int range) {
         this.numThreads = numThreads;
         this.range = range;
-        this.primes = new boolean[range + 1];
-        this.numNonPrimes = new AtomicInteger(range - 1);
+        this.primes = new BitSet(range + 1);
+        this.numChecked = new AtomicInteger(0);
         this.run = new AtomicBoolean(false);
     }
 
@@ -26,19 +26,20 @@ public class PrimeNumberGenerator {
             run.set(true);
         }
     }
+
     public void start(int newNumThreads, int newRange) {
         if (!run.get()) {
             numThreads = newNumThreads;
-            numNonPrimes.set(newRange - 1);
-            primes = new boolean[range + 1];
+            numChecked.set(0);
+            primes = new BitSet(range + 1);
             run.set(true);
         }
     }
 
     public void reset() {
         if (!run.get()){
-            Arrays.fill(primes, true);
-            numNonPrimes.set(range-1);
+            primes.set(0, range+1);;
+            numChecked.set(0);
         }
     }
 
@@ -50,39 +51,45 @@ public class PrimeNumberGenerator {
                 e.printStackTrace();
             }
         }
-        numNonPrimes.set(range-1);
+        numChecked.set(0);
     }
 
+    // Metoda generująca liczby pierwsze za pomocą puli wątków z ExecutorService
     public void generatePrimes() throws InterruptedException {
+        // Oczekiwanie na start
         waitForStart();
-        // Initialize all numbers as potential primes
-        Arrays.fill(primes, true);
 
-        // Create executor service with fixed number of threads
+        // Inicjalizacja wszystkich wartości jako potencjalne liczby pierwsze
+        primes.set(0, range+1);;
+
+        // Utworzenie puli wątków
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
-        // Divide range into chunks and submit PrimeChecker tasks to executor
-        int chunkSize = (range + numThreads - 1) / numThreads; // round up
+        // Podział zakresu na mniejsze części
+        int chunkSize = (range + numThreads - 1) / numThreads;
         for (int i = 0; i < numThreads; i++) {
             int start = i * chunkSize;
             int end = Math.min(start + chunkSize - 1, range);
             executor.submit(new PrimeChecker(start, end));
         }
 
-        // Shut down executor service and wait for all tasks to finish
+        // Zakończenie puli wątków i oczekiwanie na zakończenie wszystkich wątków
         executor.shutdown();
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         run.set(false);
     }
 
+    // Metoda generująca liczby pierwsze za pomocą ręcznego tworzenia wątków
     public void generatePrimesManually() throws InterruptedException {
+        // Oczekiwanie na start
         waitForStart();
-        // Initialize all numbers as potential primes
-        Arrays.fill(primes, true);
+
+        // Inicjalizacja wszystkich wartości jako potencjalne liczby pierwsze
+        primes.set(0, range+1);;
         
-        // Create threads to work on different portions of the range
+        // Utworzenie wątków i ich uruchomienie
         threads = new Thread[numThreads];
-        int chunkSize = (range + numThreads - 1) / numThreads; // round up
+        int chunkSize = (range + numThreads - 1) / numThreads;
         for (int i = 0; i < numThreads; i++) {
             int start = i * chunkSize;
             int end = Math.min(start + chunkSize - 1, range);
@@ -90,7 +97,7 @@ public class PrimeNumberGenerator {
             threads[i].start();
         }
         
-        // Wait for all threads to finish
+        // Oczekiwanie na zakończenie wszystkich wątków
         for (Thread thread : threads) {
             thread.join();
         }
@@ -101,11 +108,15 @@ public class PrimeNumberGenerator {
         if (n < 2) {
             return false;
         }
-        return primes[n];
+        return primes.get(n);
+    }
+
+    public BitSet getPrimes() {
+        return primes;
     }
 
     public int getProgress() {
-        return range - numNonPrimes.get();
+        return numChecked.get();
     }
 
     public int getNumThreads() {
@@ -127,16 +138,21 @@ public class PrimeNumberGenerator {
 
         @Override
         public void run() {
+            int countedNums = 0;
             for (int i = 2; i * i <= end; i++) {
-                if (primes[i]) {
+                // Sprawdzenie czy i jest [ptencjalną liczbą pierwszą
+                if (primes.get(i)) {
+                    // Sprawdzenie wszystkich liczb z zakresu, które są podzielne przez i i nie są liczbą pierwszą
                     for (int j = Math.max(i * i, ((start + i - 1) / i) * i); j <= end; j += i) {
-                        if (primes[j]) {
-                            primes[j] = false;
-                            numNonPrimes.decrementAndGet();
+                        if (primes.get(j)) {
+                            primes.set(j, false);
+                            countedNums++;
                         }
                     }
                 }
             }
+            numChecked.addAndGet(countedNums);
+            numChecked.addAndGet(primes.get(start, end).cardinality());
         }
     }
 }
