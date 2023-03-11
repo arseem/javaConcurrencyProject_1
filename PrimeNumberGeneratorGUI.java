@@ -9,6 +9,9 @@ public class PrimeNumberGeneratorGUI extends JFrame {
     private JButton startButton;
     private JButton resetButton;
     private JLabel buttons;
+    private JSpinner numThreadsSpinner;
+    private JSpinner rangeSpinner;
+    private JLabel spinners;
     private PrimeNumberGenerator generatorExecutor;
     private PrimeNumberGenerator generatorManual;
     private final int numNotPrimes;
@@ -25,7 +28,7 @@ public class PrimeNumberGeneratorGUI extends JFrame {
         int HEIGHT = 100;
 
         // Set up GUI components
-        JPanel panel = new JPanel(new GridLayout(5, 1));
+        JPanel panel = new JPanel(new GridLayout(6, 1));
         panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         executorProgressBar = new JProgressBar(0, 100);
         executorProgressBar.setStringPainted(true);
@@ -36,8 +39,8 @@ public class PrimeNumberGeneratorGUI extends JFrame {
         buttons = new JLabel();
         startButton = new JButton("Start");
         startButton.addActionListener(e -> {
-            this.generatorExecutor.start();
-            this.generatorManual.start();
+            this.generatorExecutor.start((int) numThreadsSpinner.getValue(), (int) rangeSpinner.getValue());
+            this.generatorManual.start((int) numThreadsSpinner.getValue(), (int) rangeSpinner.getValue());
             this.startTime = System.currentTimeMillis();
         });
         resetButton = new JButton("Reset");
@@ -50,11 +53,22 @@ public class PrimeNumberGeneratorGUI extends JFrame {
         buttons.setLayout(new GridLayout(1, 2));
         buttons.add(startButton, BorderLayout.WEST);
         buttons.add(resetButton, BorderLayout.EAST);
+        spinners = new JLabel();
+        spinners.setLayout(new GridLayout(2, 2));
+        numThreadsSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getNumThreads(), 1, 100, 1));
+        rangeSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getRange(), 10, 1000000000, 1));
+        spinners.add(new JLabel("Number of threads:"));
+        spinners.add(numThreadsSpinner);
+        spinners.add(new JLabel("Range:"));
+        spinners.add(rangeSpinner);
+
         panel.add(executorLabel, BorderLayout.CENTER);
         panel.add(executorProgressBar);
         panel.add(manualLabel, BorderLayout.CENTER);
         panel.add(manualProgressBar);
         panel.add(buttons);
+        panel.add(spinners);
+
         setContentPane(panel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();

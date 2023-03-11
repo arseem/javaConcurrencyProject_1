@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PrimeNumberGenerator {
-    private final int numThreads;
+    private int numThreads;
     private final int range;
-    private final boolean[] primes;
+    private boolean[] primes;
     public Thread[] threads;
     private final AtomicInteger numNonPrimes;
     private AtomicBoolean run;
@@ -22,13 +22,24 @@ public class PrimeNumberGenerator {
     }
 
     public void start() {
-        run.set(true);
+        if (!run.get()) {
+            run.set(true);
+        }
+    }
+    public void start(int newNumThreads, int newRange) {
+        if (!run.get()) {
+            numThreads = newNumThreads;
+            numNonPrimes.set(newRange - 1);
+            primes = new boolean[range + 1];
+            run.set(true);
+        }
     }
 
     public void reset() {
-        Arrays.fill(primes, true);
-        numNonPrimes.set(range-1);
-        run.set(false);
+        if (!run.get()){
+            Arrays.fill(primes, true);
+            numNonPrimes.set(range-1);
+        }
     }
 
     private void waitForStart() {
@@ -95,6 +106,14 @@ public class PrimeNumberGenerator {
 
     public int getProgress() {
         return range - numNonPrimes.get();
+    }
+
+    public int getNumThreads() {
+        return numThreads;
+    }
+
+    public int getRange() {
+        return range;
     }
 
     private class PrimeChecker implements Runnable {
