@@ -133,6 +133,10 @@ public class PrimeNumberGenerator {
         return range;
     }
 
+    public int getMaxThreads() {
+        return maxThreads;
+    }
+
     private class PrimeChecker implements Runnable {
         private final int start;
         private final int end;

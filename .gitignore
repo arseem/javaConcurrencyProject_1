@@ -1,3 +1,5 @@
 .vscode/
 timePerRange.csv
 timePerThreads.csv
+timePerTasks.csv
+timePerMaxExecutorThreads.csv
