@@ -6,17 +6,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PrimeNumberGenerator {
-    private int numThreads;
+    private int numTasks;
     private int range;
+    private int maxThreads;
     private BitSet primes;
     public Thread[] threads;
     private final AtomicInteger numChecked;
     private AtomicBoolean run;
 
-    public PrimeNumberGenerator(int numThreads, int range) {
-        this.numThreads = numThreads;
+    public PrimeNumberGenerator(int numTasks, int range, int maxThreads) {
+        this.numTasks = numTasks;
         this.range = range;
         this.primes = new BitSet(range + 1);
+        this.maxThreads = maxThreads;
         this.numChecked = new AtomicInteger(0);
         this.run = new AtomicBoolean(false);
     }
@@ -27,10 +29,11 @@ public class PrimeNumberGenerator {
         }
     }
 
-    public void start(int newNumThreads, int newRange) {
+    public void start(int newNumTasks, int newRange, int newMaxThreads) {
         if (!run.get()) {
             range = newRange;
-            numThreads = newNumThreads;
+            numTasks = newNumTasks;
+            maxThreads = newMaxThreads;
             numChecked.set(0);
             primes = new BitSet(range + 1);
             run.set(true);
@@ -64,11 +67,11 @@ public class PrimeNumberGenerator {
         primes.set(0, range+1);
 
         // Utworzenie puli wątków
-        ExecutorService executor = Executors.newFixedThreadPool(16);
+        ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
 
         // Podział zakresu na mniejsze części
-        int chunkSize = (range + numThreads - 1) / numThreads;
-        for (int i = 0; i < numThreads; i++) {
+        int chunkSize = (range + numTasks - 1) / numTasks;
+        for (int i = 0; i < numTasks; i++) {
             int start = i * chunkSize;
             int end = Math.min(start + chunkSize - 1, range);
             executor.execute(new PrimeChecker(start, end));
@@ -90,9 +93,9 @@ public class PrimeNumberGenerator {
         primes.set(0, range+1);;
         
         // Utworzenie wątków i ich uruchomienie
-        threads = new Thread[numThreads];
-        int chunkSize = (range + numThreads - 1) / numThreads;
-        for (int i = 0; i < numThreads; i++) {
+        threads = new Thread[numTasks];
+        int chunkSize = (range + numTasks - 1) / numTasks;
+        for (int i = 0; i < numTasks; i++) {
             int start = i * chunkSize;
             int end = Math.min(start + chunkSize - 1, range);
             threads[i] = new Thread(new PrimeChecker(start, end));
@@ -122,8 +125,8 @@ public class PrimeNumberGenerator {
         return numChecked.get();
     }
 
-    public int getNumThreads() {
-        return numThreads;
+    public int getNumTasks() {
+        return numTasks;
     }
 
     public int getRange() {

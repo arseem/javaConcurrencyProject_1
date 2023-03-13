@@ -4,13 +4,14 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
-        int numThreads = 10;
+        int numTasks = 10;
         int range = 100000000;
+        int maxThreads = 16;
         // Załączenie / wyłączenie trybu pobierania danych
         boolean dataFetchingMode = false;
 
-        PrimeNumberGenerator generatorExecutor = new PrimeNumberGenerator(numThreads, range);
-        PrimeNumberGenerator generatorManual = new PrimeNumberGenerator(numThreads, range);
+        PrimeNumberGenerator generatorExecutor = new PrimeNumberGenerator(numTasks, range, maxThreads);
+        PrimeNumberGenerator generatorManual = new PrimeNumberGenerator(numTasks, range, maxThreads);
 
         // Utworzenie wątków do generowania liczb pierwszych
         Thread executorThread = new Thread(() -> {
@@ -56,44 +57,45 @@ public class Main {
     }
 
     private static void performTests(PrimeNumberGenerator generatorExecutor, PrimeNumberGenerator generatorManual) {
-        int maxThreads = 256;
+        int maxTasks = 256;
         int maxRange = 2000000000;
+        int maxThreads = 256;
         float executorProgress = 0;
         float manualProgress = 0;
         double startTime = 0;
-        int[] numThreadsArray = new int[maxThreads];
-        double[] executorTimeArray = new double[maxThreads];
-        double[] manualTimeArray = new double[maxThreads];
+        int[] numTasksArray = new int[maxTasks];
+        double[] executorTimeArray = new double[maxTasks];
+        double[] manualTimeArray = new double[maxTasks];
         int range = generatorExecutor.getRange();
-        int numThreads = generatorExecutor.getNumThreads();
+        int numTasks = generatorExecutor.getNumTasks();
 
-        for (int threads=1; threads<maxThreads; threads++) {
+        for (int tasks=1; tasks<maxTasks; tasks++) {
             executorProgress = 0;
             manualProgress = 0;
-            numThreadsArray[threads-1] = threads;
-            System.out.println(threads + " Threads, " + range + " Range");
+            numTasksArray[tasks-1] = tasks;
+            System.out.println(tasks + " tasks, " + range + " Range");
 
             startTime = (double) System.currentTimeMillis();
-            generatorExecutor.start(threads, range);
+            generatorExecutor.start(tasks, range, maxThreads);
             while (executorProgress!=100) {
                 executorProgress = (float) generatorExecutor.getProgress() / (float) generatorExecutor.getRange() * 100;
             }
-            executorTimeArray[threads-1] = ((double) System.currentTimeMillis() - (double) startTime)/1000;
+            executorTimeArray[tasks-1] = ((double) System.currentTimeMillis() - (double) startTime)/1000;
             generatorExecutor.reset();
-            System.out.println("Executor: " + executorTimeArray[threads-1] + "s");
+            System.out.println("Executor: " + executorTimeArray[tasks-1] + "s");
 
             startTime = (double) System.currentTimeMillis();
-            generatorManual.start(threads, range);
+            generatorManual.start(tasks, range, maxThreads);
             while (manualProgress!=100) {
                 manualProgress = (float) generatorManual.getProgress() / (float) generatorManual.getRange() * 100;
             }
-            manualTimeArray[threads-1] = ((double) System.currentTimeMillis() - (double) startTime)/1000;
+            manualTimeArray[tasks-1] = ((double) System.currentTimeMillis() - (double) startTime)/1000;
             generatorManual.reset();
-            System.out.println("Manual: " + manualTimeArray[threads-1] + "s");
+            System.out.println("Manual: " + manualTimeArray[tasks-1] + "s");
 
         }
         try {
-			writeToExcel("Threads", numThreadsArray, executorTimeArray, manualTimeArray);
+			writeToExcel("Threads", numTasksArray, executorTimeArray, manualTimeArray);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -107,10 +109,10 @@ public class Main {
             executorProgress = 0;
             manualProgress = 0;
             rangeArray[index] = i;
-            System.out.println(numThreads + " Threads, " + i + " Range");
+            System.out.println(numTasks + " Threads, " + i + " Range");
 
             startTime = (double) System.currentTimeMillis();
-            generatorExecutor.start(numThreads, i);
+            generatorExecutor.start(numTasks, i, maxThreads);
             while (executorProgress!=100) {
                 executorProgress = (float) generatorExecutor.getProgress() / (float) generatorExecutor.getRange() * 100;
             }
@@ -119,7 +121,7 @@ public class Main {
             System.out.println("Executor: " + executorTimeArray[index] + "s");
 
             startTime = (double) System.currentTimeMillis();
-            generatorManual.start(numThreads, i);
+            generatorManual.start(numTasks, i, maxThreads);
             while (manualProgress!=100) {
                 manualProgress = (float) generatorManual.getProgress() / (float) generatorManual.getRange() * 100;
             }

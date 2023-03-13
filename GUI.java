@@ -9,8 +9,9 @@ public class GUI extends JFrame {
     private JButton startButton;
     private JButton resetButton;
     private JLabel buttons;
-    private JSpinner numThreadsSpinner;
+    private JSpinner numTasksSpinner;
     private JSpinner rangeSpinner;
+    private JSpinner executorThreadsSpinner;
     private JLabel spinners;
     private PrimeNumberGenerator generatorExecutor;
     private PrimeNumberGenerator generatorManual;
@@ -23,10 +24,11 @@ public class GUI extends JFrame {
         this.generatorExecutor = generatorExecutor;
         this.generatorManual = generatorManual;
         int WIDTH = 600;
-        int HEIGHT = 200;
+        int HEIGHT = 300;
 
         // Set up GUI components
         JPanel panel = new JPanel(new GridLayout(6, 1));
+
         panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         executorProgressBar = new JProgressBar(0, 100);
         executorProgressBar.setStringPainted(true);
@@ -37,8 +39,8 @@ public class GUI extends JFrame {
         buttons = new JLabel();
         startButton = new JButton("Start");
         startButton.addActionListener(e -> {
-            this.generatorExecutor.start((int) numThreadsSpinner.getValue(), (int) rangeSpinner.getValue());
-            this.generatorManual.start((int) numThreadsSpinner.getValue(), (int) rangeSpinner.getValue());
+            this.generatorExecutor.start((int) numTasksSpinner.getValue(), (int) rangeSpinner.getValue(), (int) executorThreadsSpinner.getValue());
+            this.generatorManual.start((int) numTasksSpinner.getValue(), (int) rangeSpinner.getValue(), (int) executorThreadsSpinner.getValue());
             this.startTime = System.currentTimeMillis();
             startButton.setEnabled(false);
             resetButton.setEnabled(false);
@@ -55,11 +57,14 @@ public class GUI extends JFrame {
         buttons.add(startButton, BorderLayout.WEST);
         buttons.add(resetButton, BorderLayout.EAST);
         spinners = new JLabel();
-        spinners.setLayout(new GridLayout(2, 2));
-        numThreadsSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getNumThreads(), 1, 100000000, 1));
+        spinners.setLayout(new GridLayout(3, 3));
+        numTasksSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getNumTasks(), 1, 100000000, 1));
         rangeSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getRange(), 10, 2100000000, 1));
-        spinners.add(new JLabel("Number of threads:"));
-        spinners.add(numThreadsSpinner);
+        executorThreadsSpinner = new JSpinner(new SpinnerNumberModel(16, 2, 256, 1));
+        spinners.add(new JLabel("Number of tasks:"));
+        spinners.add(numTasksSpinner);
+        spinners.add(new JLabel("Max number of executor threads:"));
+        spinners.add(executorThreadsSpinner);
         spinners.add(new JLabel("Range:"));
         spinners.add(rangeSpinner);
 
