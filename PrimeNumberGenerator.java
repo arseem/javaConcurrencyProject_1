@@ -61,17 +61,17 @@ public class PrimeNumberGenerator {
         waitForStart();
 
         // Inicjalizacja wszystkich wartości jako potencjalne liczby pierwsze
-        primes.set(0, range+1);;
+        primes.set(0, range+1);
 
         // Utworzenie puli wątków
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(16);
 
         // Podział zakresu na mniejsze części
         int chunkSize = (range + numThreads - 1) / numThreads;
         for (int i = 0; i < numThreads; i++) {
             int start = i * chunkSize;
             int end = Math.min(start + chunkSize - 1, range);
-            executor.submit(new PrimeChecker(start, end));
+            executor.execute(new PrimeChecker(start, end));
         }
 
         // Zakończenie puli wątków i oczekiwanie na zakończenie wszystkich wątków
@@ -141,7 +141,9 @@ public class PrimeNumberGenerator {
 
         @Override
         public void run() {
+            // countedNums - liczba sprawdzonych liczb niepierwszych w danym zakresie
             int countedNums = 0;
+            // sito Eratostenesa
             for (int i = 2; i * i <= end; i++) {
                 // Sprawdzenie czy i jest [ptencjalną liczbą pierwszą
                 if (primes.get(i)) {
@@ -154,6 +156,7 @@ public class PrimeNumberGenerator {
                     }
                 }
             }
+            // Dodanie ilości liczb sprawdzonych w danym wątku do liczby wszystkich sprawdzonych liczb 
             numChecked.addAndGet(countedNums);
             numChecked.addAndGet(primes.get(start, end).cardinality());
         }

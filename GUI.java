@@ -56,7 +56,7 @@ public class GUI extends JFrame {
         buttons.add(resetButton, BorderLayout.EAST);
         spinners = new JLabel();
         spinners.setLayout(new GridLayout(2, 2));
-        numThreadsSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getNumThreads(), 1, 256, 1));
+        numThreadsSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getNumThreads(), 1, 100000000, 1));
         rangeSpinner = new JSpinner(new SpinnerNumberModel(generatorExecutor.getRange(), 10, 2100000000, 1));
         spinners.add(new JLabel("Number of threads:"));
         spinners.add(numThreadsSpinner);

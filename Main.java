@@ -6,12 +6,13 @@ public class Main {
     public static void main(String[] args) {
         int numThreads = 10;
         int range = 100000000;
+        // Załączenie / wyłączenie trybu pobierania danych
         boolean dataFetchingMode = false;
 
         PrimeNumberGenerator generatorExecutor = new PrimeNumberGenerator(numThreads, range);
         PrimeNumberGenerator generatorManual = new PrimeNumberGenerator(numThreads, range);
 
-        // Create threads for generating primes
+        // Utworzenie wątków do generowania liczb pierwszych
         Thread executorThread = new Thread(() -> {
             while (true) {
                 try {
